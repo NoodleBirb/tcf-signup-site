@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
     await associateContactToOpportunity(contactId, opportunityId, "USER_DEFINED", hubspotStatusId)
 
-    const disassociateStatusIds = normalizedStatus === 'in-review' ? [5, 45] : [19, 23]
+    const disassociateStatusIds = normalizedStatus === 'in-review' ? [22, 5, 45] : [19, 23]
     for (const disassociateStatusId of disassociateStatusIds) {
       await disassociateContactFromOpportunity(contactId, opportunityId, "USER_DEFINED", disassociateStatusId)
     }
