@@ -63,6 +63,10 @@
     "yesValue": "nABLB1wXwnWES39Rff7ZO",
     "noValue": "MTlPSCzKCtIey_DQUT4aW"
   },
+  "signupWorkflowFlag": {
+    "property": "training_set_marketing",
+    "value": "Yes"
+  },
   "unregister": {
     "mode": "relabel"
   }

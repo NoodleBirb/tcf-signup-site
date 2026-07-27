@@ -51,6 +51,11 @@ export type HubSpotConfig = {
     yesValue: string
     noValue: string
   }
+  /** Set on every training signup so a HubSpot workflow can enroll the contact. */
+  signupWorkflowFlag: {
+    property: string
+    value: string
+  }
   unregister: {
     mode: 'remove' | 'relabel'
   }
@@ -134,6 +139,10 @@ export function getContactPropertyKeys() {
 
 export function getSmsConsentConfig() {
   return hubspotConfig.smsConsent
+}
+
+export function getSignupWorkflowFlagConfig() {
+  return hubspotConfig.signupWorkflowFlag
 }
 
 export function getUnregisterHubSpotModeFromConfig() {

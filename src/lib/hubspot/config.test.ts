@@ -4,6 +4,7 @@ import {
   getContactPropertyKeys,
   getRegistrationCloseHoursBeforeStart,
   getRegistrantAssociationLabel,
+  getSignupWorkflowFlagConfig,
   getSmsConsentConfig,
   getTrainingProperties,
   hubspotConfig,
@@ -18,6 +19,8 @@ describe('hubspot config', () => {
     expect(getCancelledAssociationLabel()).toBe('unregistered')
     expect(getContactPropertyKeys().email).toBe('email')
     expect(getSmsConsentConfig().yesValue).toBeTruthy()
+    expect(getSignupWorkflowFlagConfig().property).toBeTruthy()
+    expect(getSignupWorkflowFlagConfig().value).toBe('Yes')
   })
 
   it('reads per-program registration close hours from config', () => {

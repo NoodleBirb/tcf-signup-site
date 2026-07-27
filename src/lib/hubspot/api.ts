@@ -16,6 +16,7 @@ import {
   getRegistrantAssociationLabel,
   getRegistrantAssociationTypeId,
   getCancelledAssociationLabel,
+  getSignupWorkflowFlagConfig,
   getSmsConsentConfig,
   getTrainingObjectId,
   getTrainingProperties,
@@ -153,6 +154,11 @@ function mapContactProperties(data: ContactData): { [key: string]: string } {
 
   if (data.smsConsent) {
     properties[getSmsConsentConfig().property] = mapSmsConsentToHubSpot(data.smsConsent)
+  }
+
+  const signupFlag = getSignupWorkflowFlagConfig()
+  if (signupFlag.property) {
+    properties[signupFlag.property] = signupFlag.value
   }
 
   return properties
