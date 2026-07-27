@@ -13,6 +13,7 @@ Portal wiring for this app lives in **`config/hubspot.json`**. It is committed t
 | `programs.mhfa` / `programs.qpr` | Pipeline type, open stage, and closed-for-registration stage IDs |
 | `contactProperties` | Maps signup form fields to HubSpot contact property internal names |
 | `smsConsent` | SMS consent property name and yes/no option values |
+| `signupWorkflowFlag` | Contact property + value set on every training signup (for HubSpot workflow enrollment) |
 | `unregister.mode` | `remove` or `relabel` after cancellation (see `UNREGISTER.md`) |
 
 Loaded by `src/lib/hubspot/config.ts`. Do not duplicate these values in environment variables.
