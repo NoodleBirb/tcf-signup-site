@@ -151,6 +151,37 @@ export function findTrainingIdsWithActiveRegistrantAssociation(
   )
 }
 
+/** Training IDs with an active registrant or waitlist association (not cancelled/unwaitlisted). */
+export function findTrainingIdsWithActiveSignupAssociation(
+  rows: TrainingAssociationRow[],
+  registrantLabel: string,
+  waitlistLabel: string,
+  registrantTypeId?: string,
+  waitlistTypeId?: string,
+  cancelledLabel?: string,
+  cancelledTypeId?: string
+): string[] {
+  const trainingIds = [...new Set(rows.map((row) => row.trainingId))]
+
+  return trainingIds.filter((trainingId) => {
+    const hasRegistrant =
+      findRegistrantAssociationsForTraining(
+        rows,
+        trainingId,
+        registrantLabel,
+        registrantTypeId,
+        cancelledLabel,
+        cancelledTypeId
+      ).length > 0
+    if (hasRegistrant) return true
+
+    return (
+      findWaitlistAssociationsForTraining(rows, trainingId, waitlistLabel, waitlistTypeId)
+        .length > 0
+    )
+  })
+}
+
 export function findNonRegistrantAssociationsForTraining(
   rows: TrainingAssociationRow[],
   trainingId: string,

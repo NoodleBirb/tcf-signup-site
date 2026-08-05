@@ -26,6 +26,7 @@ npm run test:watch
 | Program config (MHFA/QPR pipelines from config) | `src/lib/programs/config.test.ts` |
 | Schedule / event end date helpers | `src/lib/dates/format-schedule.test.ts` |
 | Unregister token signing | `src/lib/unregister/token.test.ts` |
+| One-active signup rule (program scope, end date) | `src/lib/signup/active-registration.test.ts` |
 | Signup API validation and error paths (mocked HubSpot) | `src/app/api/signup/route.test.ts` |
 
 Shared signup payloads live in `src/test/fixtures/signup.ts`.
@@ -61,7 +62,10 @@ Pipeline and property wiring comes from **`config/hubspot.json`** (not env vars)
 5. Confirm redirect to `/{program}/events/{id}/success`
 6. Check confirmation email (or server console log in dev)
 7. Submit again with the **same** email → should show “already registered” (409)
-8. In HubSpot, verify contact properties and `registrant` training association
+8. Try a **different** open session in the **same** program → blocked (whether registered or waitlisted elsewhere)
+9. After that session’s end datetime (day 2 if present, else day 1), signup for another session in the same program should succeed
+10. An active MHFA registration/waitlist should **not** block QPR signup (and vice versa)
+11. In HubSpot, verify contact properties and `registrant` training association
 
 ### Unregister
 

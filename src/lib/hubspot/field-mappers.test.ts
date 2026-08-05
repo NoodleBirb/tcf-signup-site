@@ -8,6 +8,7 @@ import {
   findNonRegistrantAssociationsForTraining,
   findRegistrantAssociationsForTraining,
   findTrainingIdsWithActiveRegistrantAssociation,
+  findTrainingIdsWithActiveSignupAssociation,
   findUnwaitlistedAssociationsForTraining,
   findWaitlistAssociationsForTraining,
   hasActiveRegistrantAssociation,
@@ -157,6 +158,21 @@ describe('findTrainingIdsWithActiveRegistrantAssociation', () => {
       '111',
       '333',
     ])
+  })
+})
+
+describe('findTrainingIdsWithActiveSignupAssociation', () => {
+  it('returns trainings with registrant or waitlist associations', () => {
+    const rows = [
+      { trainingId: '111', associationType: 'registrant' },
+      { trainingId: '222', associationType: 'waitlisted' },
+      { trainingId: '333', associationType: 'unregistered' },
+      { trainingId: '444', associationType: 'unwaitlisted' },
+    ]
+
+    expect(
+      findTrainingIdsWithActiveSignupAssociation(rows, 'registrant', 'waitlisted')
+    ).toEqual(['111', '222'])
   })
 })
 

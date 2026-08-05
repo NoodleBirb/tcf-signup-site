@@ -142,7 +142,12 @@ describe('POST /api/signup', () => {
       success: true,
       waitlisted: true,
     })
-    expect(associateContactToTraining).toHaveBeenCalledWith('contact-1', 'event-123', 'waitlist')
+    expect(associateContactToTraining).toHaveBeenCalledWith(
+      'contact-1',
+      'event-123',
+      'waitlist',
+      'mhfa'
+    )
     expect(sendWaitlistConfirmationEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'jane.doe@example.edu',
@@ -206,6 +211,34 @@ describe('POST /api/signup', () => {
       error: alreadyRegisteredAnotherTrainingMessage(signupFormContent.messages),
     })
     expect(createOrUpdateContact).not.toHaveBeenCalled()
+    expect(isContactRegisteredForAnotherTraining).toHaveBeenCalledWith(
+      'contact-1',
+      'event-123',
+      'mhfa'
+    )
+  })
+
+  it('returns 409 when waitlisting while active on another training in the program', async () => {
+    getContactByEmail.mockResolvedValue({ id: 'contact-1' })
+    isContactRegisteredForAnotherTraining.mockResolvedValue(true)
+    loadProgramEventById.mockResolvedValue({
+      event: {
+        id: 'event-123',
+        isFull: true,
+        waitlistFull: false,
+        active: true,
+        availableCapacity: 0,
+        availableWaitlistCapacity: 5,
+      },
+      error: null,
+    })
+
+    const res = await postSignup(signupRequestBody())
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({
+      error: alreadyRegisteredAnotherTrainingMessage(signupFormContent.messages),
+    })
+    expect(createOrUpdateContact).not.toHaveBeenCalled()
   })
 
   it('returns 409 when the contact is already registered', async () => {
@@ -239,7 +272,12 @@ describe('POST /api/signup', () => {
       waitlisted: false,
       hubspotContactId: 'contact-1',
     })
-    expect(associateContactToTraining).toHaveBeenCalledWith('contact-1', 'event-123', 'registrant')
+    expect(associateContactToTraining).toHaveBeenCalledWith(
+      'contact-1',
+      'event-123',
+      'registrant',
+      'mhfa'
+    )
     expect(sendRegistrationConfirmationEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'jane.doe@example.edu',

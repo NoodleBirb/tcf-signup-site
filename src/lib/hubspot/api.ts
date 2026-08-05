@@ -29,7 +29,7 @@ import {
   contactHasAssociationForTraining,
   findNonRegistrantAssociationsForTraining,
   findRegistrantAssociationsForTraining,
-  findTrainingIdsWithActiveRegistrantAssociation,
+  findTrainingIdsWithActiveSignupAssociation,
   findUnwaitlistedAssociationsForTraining,
   findWaitlistAssociationsForTraining,
   hasActiveRegistrantAssociation,
@@ -40,6 +40,11 @@ import {
   parseTrainingAssociationRows,
   type TrainingAssociationRow,
 } from '@/lib/hubspot/field-mappers'
+import {
+  getProgramPipelineConfig,
+  type TrainingProgramId,
+} from '@/lib/programs/config'
+import { doesTrainingBlockProgramSignup } from '@/lib/signup/active-registration'
 
 export {
   getCancelledAssociationLabel,
@@ -180,34 +185,52 @@ export async function isContactRegisteredForTraining(
   )
 }
 
-/** True when the contact has an active registrant association on a different training. */
+/**
+ * True when the contact has an active registrant or waitlist association on a different
+ * training in the same program that has not yet ended (day 2 end if present, else day 1).
+ */
 export async function isContactRegisteredForAnotherTraining(
   contactId: string,
-  trainingId: string
+  trainingId: string,
+  programId: TrainingProgramId
 ): Promise<boolean> {
   const associations = await getContactTrainingAssociations(contactId)
-  const activeRegistrantTrainingIds = findTrainingIdsWithActiveRegistrantAssociation(
-    associations,
-    getRegistrantAssociationLabel(),
-    getRegistrantAssociationTypeId(),
-    getCancelledAssociationLabel(),
-    getCancelledAssociationTypeId()
-  )
-
-  return activeRegistrantTrainingIds.some((id) => id !== String(trainingId))
+  return contactHasActiveSignupElsewhereInProgram(associations, trainingId, programId)
 }
 
-function contactHasRegistrantAssociationElsewhere(
+async function contactHasActiveSignupElsewhereInProgram(
   associations: TrainingAssociationRow[],
-  trainingId: string
-): boolean {
-  return findTrainingIdsWithActiveRegistrantAssociation(
+  trainingId: string,
+  programId: TrainingProgramId
+): Promise<boolean> {
+  const candidateIds = findTrainingIdsWithActiveSignupAssociation(
     associations,
     getRegistrantAssociationLabel(),
+    getWaitlistAssociationLabel(),
     getRegistrantAssociationTypeId(),
+    getWaitlistAssociationTypeId(),
     getCancelledAssociationLabel(),
     getCancelledAssociationTypeId()
-  ).some((id) => id !== String(trainingId))
+  ).filter((id) => id !== String(trainingId))
+
+  if (candidateIds.length === 0) return false
+
+  const { pipelineType } = getProgramPipelineConfig(programId)
+
+  const blocking = await Promise.all(
+    candidateIds.map(async (candidateId) => {
+      const training = await getTrainingById(candidateId)
+      if (!training) return false
+
+      return doesTrainingBlockProgramSignup({
+        trainingPipeline: training.properties.hs_pipeline,
+        programPipelineType: pipelineType,
+        schedule: mapTrainingToEvent(training).schedule,
+      })
+    })
+  )
+
+  return blocking.some(Boolean)
 }
 
 /** Returns true if the contact has a waitlist association to this training. */
@@ -764,7 +787,8 @@ export async function associateContactToCompany(contactId: string, companyId: st
 export async function associateContactToTraining(
   contactId: string,
   trainingId: string,
-  role: TrainingAssociationRole = 'registrant'
+  role: TrainingAssociationRole = 'registrant',
+  programId: TrainingProgramId
 ): Promise<void> {
   if (!getApiKey()) {
     throw new Error('HUBSPOT_API_KEY is not configured')
@@ -780,7 +804,7 @@ export async function associateContactToTraining(
 
   const associations = await getContactTrainingAssociations(contactId)
 
-  if (role === 'registrant' && contactHasRegistrantAssociationElsewhere(associations, trainingId)) {
+  if (await contactHasActiveSignupElsewhereInProgram(associations, trainingId, programId)) {
     throw new AlreadyRegisteredError(
       alreadyRegisteredAnotherTrainingMessage(signupFormContent.messages)
     )

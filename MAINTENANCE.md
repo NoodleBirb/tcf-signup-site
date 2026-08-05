@@ -143,8 +143,9 @@ Manual check with real HubSpot (valid `.env.local`):
 2. Open `/mhfa` — events load
 3. Submit signup with a **new** email → success page + confirmation email (or console log)
 4. Submit again with same email → “already registered”
-5. Verify contact + training link in HubSpot
-6. `/unregister` → find registration → receive cancel link → confirm → registrant removed (or relabeled)
+5. Different session same program → blocked until cancel or session end; other program still allowed
+6. Verify contact + training link in HubSpot
+7. `/unregister` → find registration → receive cancel link → confirm → registrant removed (or relabeled)
 
 ---
 
