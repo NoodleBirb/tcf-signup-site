@@ -96,11 +96,11 @@ export async function POST(req: Request) {
       if (await isContactRegisteredForTraining(existingContact.id, eventId)) {
         return NextResponse.json({ error: messages.alreadyRegistered }, { status: 409 })
       }
-      if (!waitlisted && (await isContactRegisteredForAnotherTraining(existingContact.id, eventId))) {
-        return NextResponse.json({ error: alreadyRegisteredAnotherTrainingError }, { status: 409 })
-      }
       if (await isContactOnWaitlistForTraining(existingContact.id, eventId)) {
         return NextResponse.json({ error: messages.alreadyOnWaitlist }, { status: 409 })
+      }
+      if (await isContactRegisteredForAnotherTraining(existingContact.id, eventId, program)) {
+        return NextResponse.json({ error: alreadyRegisteredAnotherTrainingError }, { status: 409 })
       }
     }
 
@@ -129,11 +129,11 @@ export async function POST(req: Request) {
       if (await isContactRegisteredForTraining(hubspotContactId, eventId)) {
         return NextResponse.json({ error: messages.alreadyRegistered }, { status: 409 })
       }
-      if (!waitlisted && (await isContactRegisteredForAnotherTraining(hubspotContactId, eventId))) {
-        return NextResponse.json({ error: alreadyRegisteredAnotherTrainingError }, { status: 409 })
-      }
-      if (waitlisted && (await isContactOnWaitlistForTraining(hubspotContactId, eventId))) {
+      if (await isContactOnWaitlistForTraining(hubspotContactId, eventId)) {
         return NextResponse.json({ error: messages.alreadyOnWaitlist }, { status: 409 })
+      }
+      if (await isContactRegisteredForAnotherTraining(hubspotContactId, eventId, program)) {
+        return NextResponse.json({ error: alreadyRegisteredAnotherTrainingError }, { status: 409 })
       }
 
       // Create or find the company by website and associate the contact to it
@@ -149,7 +149,8 @@ export async function POST(req: Request) {
       await associateContactToTraining(
         hubspotContactId,
         eventId,
-        waitlisted ? 'waitlist' : 'registrant'
+        waitlisted ? 'waitlist' : 'registrant',
+        program
       )
     } catch (hsError: unknown) {
       if (hsError instanceof AlreadyRegisteredError) {

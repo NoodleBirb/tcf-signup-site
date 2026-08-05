@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     const [registered, waitlisted, registeredForAnotherTraining] = await Promise.all([
       isContactRegisteredForTraining(contact.id, eventId),
       isContactOnWaitlistForTraining(contact.id, eventId),
-      isContactRegisteredForAnotherTraining(contact.id, eventId),
+      isContactRegisteredForAnotherTraining(contact.id, eventId, program),
     ])
 
     return NextResponse.json({ registered, waitlisted, registeredForAnotherTraining })
