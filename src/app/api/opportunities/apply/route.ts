@@ -158,10 +158,8 @@ export async function POST(req: Request) {
     }
 
     const resumeUrl = source["resume_url"];
-    if (resumeUrl !== undefined && resumeUrl !== null) {
-      const resumeJson = await getContactProperty(contactId, "resume_json");
-      properties["resume_json"] = buildJson(opportunityId, resumeUrl as string, resumeJson)
-    }
+    const resumeJson = await getContactProperty(contactId, "resume_json");
+    properties["resume_json"] = buildJson(opportunityId, resumeUrl as string, resumeJson)
 
     const coverLetterUrl = source["cover_letter_url"];
     const coverLetterJson = await getContactProperty(contactId, "cover_letter_json");
