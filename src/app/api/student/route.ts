@@ -20,6 +20,22 @@ const ALLOWED_STUDENT_PROPERTIES = new Set([
   'hometown_city',
   'hometown_state',
   'college_major',
+  'current_year_in_school',
+  'graduation_date',
+  'n18_yet',
+  'when_18_mdy',
+  'pediatric_health_interest',
+  'what_areas_might_interest_you__select_all_that_apply_',
+  'please_discuss_some_of_your_areas_of_interest_',
+  'what_level_of_interest_do_you_have_with_trusted_care_foundation__select_all_that_apply_to_you_',
+  'we_strive_to_make_our_programs_accessible_for_all_students___do_you_identify_with_any_of_the_follow',
+  'race',
+  'hispanic_latino_origin',
+  'gender_identity',
+  'gender_identity_explanation',
+  'are_you_a_first_generation_immigrant_',
+  'other_fluent_language',
+  'fluent_languages_other'
 ])
 
 export const dynamic = 'force-dynamic'
