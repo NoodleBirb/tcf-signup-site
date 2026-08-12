@@ -122,7 +122,7 @@ export async function POST(req: Request) {
 
     // Update contact if contactId and contact properties are provided
     if (contactId && contactProperties && Object.keys(contactProperties).length > 0) {
-        try {
+      try {
         await updateContactProperties(contactId, contactProperties)
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error'
