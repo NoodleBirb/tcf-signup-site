@@ -1509,13 +1509,13 @@ export async function isOpportunityRequester(
   const results = Array.isArray(parsed?.results) ? parsed.results : [];
 
   const debug = [];
-  debug.push("Requester check:", JSON.stringify({ userId, opportunityId, results, }, null, 2));
+  debug.push("Requester check:" + JSON.stringify({ userId, opportunityId, results, }, null, 2));
 
   for (const entry of results) {
     const toArray = Array.isArray(entry?.to) ? entry.to : [];
     
     for (const contact of toArray) {
-      debug.push("Contact association:", JSON.stringify({ contactId: contact?.id, userId, associationTypes: contact?.associationTypes }));
+      debug.push("Contact association:" + JSON.stringify({ contactId: contact?.id, userId, associationTypes: contact?.associationTypes }));
 
       const contactId = contact.toObjectId;
       if (contactId !== userId) continue;
