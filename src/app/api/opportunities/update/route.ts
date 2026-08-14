@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getOpportunityStage, updateOpportunityProperties } from '@/lib/hubspot/api'
+import {
+  isOpportunityRequester,
+  getOpportunityStage,
+  updateOpportunityProperties } from '@/lib/hubspot/api'
 
 const ALLOWED_ORIGINS = new Set([
   'https://www-trustedcarefoundation-org.sandbox.hs-sites.com',
@@ -105,6 +108,15 @@ export async function POST(req: Request) {
 
     if (!opportunityId || typeof opportunityId !== "string") {
       return jsonWithCors({ error: 'Missing opportunityId' }, req, { status: 400 })
+    }
+
+    const isRequester = await isOpportunityRequester(contactId, opportunityId);
+    if (!isRequester) {
+      return jsonWithCors(
+        {error: "You are not authorized to edit this opportunity" },
+        req,
+        { status: 403 }
+      );
     }
 
     const stage = getOpportunityStage(opportunityId);
