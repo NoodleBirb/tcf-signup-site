@@ -119,8 +119,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const stage = getOpportunityStage(opportunityId);
-    if (!stage || !EDITABLE_STAGES.has(String(stage))) {
+    const stage = await getOpportunityStage(opportunityId);
+    if (!stage || !EDITABLE_STAGES.has(stage)) {
       return jsonWithCors(
         { error: 'Opportunity is no longer editable' },
         req,
