@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { associateContactToOpportunity, disassociateContactFromOpportunity } from '@/lib/hubspot/api'
+import {
+  isOpportunityRequester,
+  associateContactToOpportunity,
+  disassociateContactFromOpportunity } from '@/lib/hubspot/api'
 
 const ALLOWED_ORIGINS = new Set([
   'https://www-trustedcarefoundation-org.sandbox.hs-sites.com',
@@ -45,7 +48,11 @@ export function OPTIONS(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { contactId, opportunityId, status } = body || {}
+    const { employerId, contactId, opportunityId, status } = body || {}
+
+    if (!employerId || typeof employerId !== "string") {
+      return jsonWithCors({ error: 'Missing employerId' }, req, { status: 400 })
+    }
 
     if (!contactId) {
       return jsonWithCors({ error: 'Missing contactId' }, req, { status: 400 })
@@ -53,6 +60,15 @@ export async function POST(req: Request) {
 
     if (!opportunityId || typeof opportunityId !== 'string') {
       return jsonWithCors({ error: 'Missing opportunityId' }, req, { status: 400 })
+    }
+
+    const [isRequester, debug] = await isOpportunityRequester(contactId, opportunityId);
+    if (!isRequester) {
+      return jsonWithCors(
+        {error: "You are not authorized to perform this action", debug },
+        req,
+        { status: 403 }
+      );
     }
 
     const normalizedStatus = typeof status === 'string' ? status.trim().toLowerCase() : ''
