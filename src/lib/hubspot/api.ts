@@ -1524,7 +1524,10 @@ export async function isOpportunityRequester(
         ? (contact.associationTypes as Array<Record<string, unknown>>)
         : []
       
-      const isRequester = associationTypes.some(type => type.typeId === 11 || type.typeId === 12);
+      const isRequester = associationTypes.some(type => {
+        debug.push(`  Checking association typeId: ${type?.typeId}`);
+        return type.typeId === 11 || type.typeId === 12
+      });
       return [isRequester, debug];
     }
   }
