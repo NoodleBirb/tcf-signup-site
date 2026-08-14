@@ -110,10 +110,10 @@ export async function POST(req: Request) {
       return jsonWithCors({ error: 'Missing opportunityId' }, req, { status: 400 })
     }
 
-    const isRequester = await isOpportunityRequester(contactId, opportunityId);
+    const [isRequester, debug] = await isOpportunityRequester(contactId, opportunityId);
     if (!isRequester) {
       return jsonWithCors(
-        {error: "You are not authorized to edit this opportunity" },
+        {error: "You are not authorized to edit this opportunity", debug },
         req,
         { status: 403 }
       );
