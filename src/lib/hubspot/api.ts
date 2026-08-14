@@ -1515,10 +1515,11 @@ export async function isOpportunityRequester(
     const toArray = Array.isArray(entry?.to) ? entry.to : [];
     
     for (const contact of toArray) {
-      debug.push("Contact association:" + JSON.stringify({ contactId: contact?.id, userId, associationTypes: contact?.associationTypes }));
 
       const contactId = contact.toObjectId;
       if (contactId !== userId) continue;
+
+      debug.push("Contact association:" + JSON.stringify({ contactId: contact.toObjectId, userId, associationTypes: contact?.associationTypes }));
 
       const associationTypes = Array.isArray(contact.associationTypes)
         ? (contact.associationTypes as Array<Record<string, unknown>>)
@@ -1526,7 +1527,7 @@ export async function isOpportunityRequester(
       
       const isRequester = associationTypes.some(type => {
         debug.push(`  Checking association typeId: ${type?.typeId}`);
-        return type.typeId === 11 || type.typeId === 12
+        return type.typeId === 12
       });
       return [isRequester, debug];
     }
