@@ -1517,7 +1517,7 @@ export async function isOpportunityRequester(
     for (const contact of toArray) {
 
       const contactId = contact.toObjectId;
-      if (contactId !== userId) continue;
+      if (String(contactId) !== String(userId)) continue;
 
       debug.push("Contact association:" + JSON.stringify({ contactId: contact.toObjectId, userId, associationTypes: contact?.associationTypes }));
 
