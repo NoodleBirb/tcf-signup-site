@@ -106,6 +106,13 @@ export interface HubSpotCompany {
   }
 }
 
+export interface HubSpotOpportunity {
+  id: string
+  properties: {
+    [key: string]: string
+  }
+}
+
 export interface HubSpotTraining {
   id: string
   properties: {
@@ -1408,7 +1415,7 @@ export async function getApplicantsForOpportunities(
   return [finalResult, debug];
 }
 
-export async function isOpportunityOpen(opportunityId: string): Promise<boolean> {
+export async function getOpportunityStage(opportunityId: string): Promise<string | null> {
   if (!getApiKey()) {
     throw new Error('HUBSPOT_API_KEY is not configured')
   }
@@ -1432,7 +1439,88 @@ export async function isOpportunityOpen(opportunityId: string): Promise<boolean>
   }
 
   const stage = parsed?.properties?.hs_pipeline_stage ?? null
-  if (!stage) return false;
+  if (!stage) return null
 
-  return stage === "6f14f8f1-407b-4b5b-99a7-db681b779076";
+  return stage;
+}
+
+/**
+ * Update an opportunity with the provided properties.
+ * 
+ * @param opportunityId HubSpot opportunity ID
+ * @param properties Object with property names as keys and string values
+ * @returns Updated opportunity object
+ */
+export async function updateOpportunityProperties(
+  opportunityId: string,
+  properties: Record<string, string>
+): Promise<HubSpotOpportunity> {
+  if (!getApiKey()) {
+    throw new Error('HUBSPOT_API_KEY is not configured')
+  }
+
+  const opportunityObjectType = '0-420'
+  const response = await hubspotFetch(`${HUBSPOT_API_BASE}/crm/v3/objects/${opportunityObjectType}/${opportunityId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${getApiKey()}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ properties }),
+  })
+
+  if (!response.ok) {
+    const error = await safeParseResponse(response)
+    const msg = (error && (error.message || error.error || error.text)) || response.statusText
+    throw new Error(`HubSpot API error: ${msg}`)
+  }
+
+  const parsed = await safeParseResponse(response)
+  return parsed
+}
+
+export async function isOpportunityRequester(
+  userId: string,
+  opportunityId: string
+): Promise<boolean> {
+  if (!getApiKey()) {
+    throw new Error('HUBSPOT_API_KEY is not configured')
+  }
+
+  const headers = {
+    Authorization: `Bearer ${getApiKey()}`,
+    'Content-Type': 'application/json',
+  }
+
+  const response = await hubspotFetch(`${HUBSPOT_API_BASE}/crm/v4/associations/0-420/contacts/batch/read`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      inputs: [{ "id": opportunityId }]
+    }),
+  })
+
+  const parsed = await safeParseResponse(response)
+  if (!response.ok) {
+    const msg = (parsed && (parsed.message || parsed.error || parsed.text)) || response.statusText
+    throw new Error(`Failed to list opportunity associations: ${msg}`)
+  }
+
+  const results = Array.isArray(parsed?.results) ? parsed.results : [];
+
+  for (const entry of results) {
+    const toArray = Array.isArray(entry?.to) ? entry.to : [];
+    
+    for (const contact of toArray) {
+      const contactId = contact.toObjectId;
+      if (contactId !== userId) continue;
+
+      const associationTypes = Array.isArray(contact.associationTypes)
+        ? (contact.associationTypes as Array<Record<string, unknown>>)
+        : []
+      
+      return associationTypes.some(type => type.typeId === 11 || type.typeId === 12);
+    }
+  }
+  return false;
 }
