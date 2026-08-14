@@ -136,7 +136,8 @@ export async function POST(req: Request) {
     await updateOpportunityProperties(opportunityId, normalizedProperties);
     return jsonWithCors({ success: true }, req)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    return jsonWithCors({ error: message }, req, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    return jsonWithCors({ error: message, stack }, req, { status: 500 })
   }
 }
