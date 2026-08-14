@@ -1482,7 +1482,7 @@ export async function updateOpportunityProperties(
 export async function isOpportunityRequester(
   userId: string,
   opportunityId: string
-): Promise<boolean> {
+): Promise<[boolean, string[]]> {
   if (!getApiKey()) {
     throw new Error('HUBSPOT_API_KEY is not configured')
   }
@@ -1508,10 +1508,15 @@ export async function isOpportunityRequester(
 
   const results = Array.isArray(parsed?.results) ? parsed.results : [];
 
+  const debug = [];
+  debug.push("Requester check:", JSON.stringify({ userId, opportunityId, results, }, null, 2));
+
   for (const entry of results) {
     const toArray = Array.isArray(entry?.to) ? entry.to : [];
     
     for (const contact of toArray) {
+      debug.push("Contact association:", JSON.stringify({ contactId: contact?.id, userId, associationTypes: contact?.associationTypes }));
+
       const contactId = contact.toObjectId;
       if (contactId !== userId) continue;
 
@@ -1519,8 +1524,9 @@ export async function isOpportunityRequester(
         ? (contact.associationTypes as Array<Record<string, unknown>>)
         : []
       
-      return associationTypes.some(type => type.typeId === 11 || type.typeId === 12);
+      const isRequester = associationTypes.some(type => type.typeId === 11 || type.typeId === 12);
+      return [isRequester, debug];
     }
   }
-  return false;
+  return [false, debug];
 }
