@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getContactProperty,
-         isOpportunityOpen,
+         getOpportunityStage,
          updateContactProperties,
          associateContactToOpportunity,
-         disassociateContactFromOpportunity } from '@/lib/hubspot/api'
+         disassociateContactFromOpportunity} from '@/lib/hubspot/api'
 
 const ALLOWED_ORIGINS = new Set([
   'https://www-trustedcarefoundation-org.sandbox.hs-sites.com',
@@ -139,7 +139,8 @@ export async function POST(req: Request) {
       return jsonWithCors({ error: 'Missing opportunityId' }, req, { status: 400 })
     }
 
-    if (!isOpportunityOpen(opportunityId)) {
+    const stage = getOpportunityStage(opportunityId);
+    if (!stage || String(stage) !== "6f14f8f1-407b-4b5b-99a7-db681b779076") {
       return jsonWithCors(
         { error: 'Opportunity not open for applications' },
         req,
