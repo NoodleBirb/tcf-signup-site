@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       return jsonWithCors({ error: 'Missing opportunityId' }, req, { status: 400 })
     }
 
-    const [isRequester, debug] = await isOpportunityRequester(contactId, opportunityId);
+    const [isRequester, debug] = await isOpportunityRequester(employerId, opportunityId);
     if (!isRequester) {
       return jsonWithCors(
         {error: "You are not authorized to perform this action", debug },
