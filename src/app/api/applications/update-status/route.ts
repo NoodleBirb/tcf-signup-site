@@ -50,10 +50,6 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { employerId, contactId, opportunityId, status } = body || {}
 
-    if (!employerId || typeof employerId !== "string") {
-      return jsonWithCors({ error: 'Missing employerId' }, req, { status: 400 })
-    }
-
     if (!contactId) {
       return jsonWithCors({ error: 'Missing contactId' }, req, { status: 400 })
     }
@@ -62,16 +58,7 @@ export async function POST(req: Request) {
       return jsonWithCors({ error: 'Missing opportunityId' }, req, { status: 400 })
     }
 
-    const [isRequester, debug] = await isOpportunityRequester(employerId, opportunityId);
-    if (!isRequester) {
-      return jsonWithCors(
-        {error: "You are not authorized to perform this action", debug },
-        req,
-        { status: 403 }
-      );
-    }
-
-    const normalizedStatus = typeof status === 'string' ? status.trim().toLowerCase() : ''
+    const normalizedStatus = typeof status === 'string' ? status.trim().toLowerCase() : '';
     const hubspotStatusId =
       normalizedStatus === 'in-review'
         ? 23
@@ -81,7 +68,22 @@ export async function POST(req: Request) {
             ? 45
             : normalizedStatus === 'withdraw' || normalizedStatus === 'decline'
               ? 9
-              : null
+              : null;
+
+    if (hubspotStatusId !== 9) {
+      if (!employerId || typeof employerId !== "string") {
+        return jsonWithCors({ error: 'Missing employerId' }, req, { status: 400 })
+      }
+
+      const [isRequester, debug] = await isOpportunityRequester(employerId, opportunityId);
+      if (!isRequester) {
+        return jsonWithCors(
+          {error: "You are not authorized to perform this action", debug },
+          req,
+          { status: 403 }
+        );
+      }
+    }
 
     if (hubspotStatusId === null) {
       return jsonWithCors({ error: 'Unsupported status' }, req, { status: 400 })
